@@ -5,6 +5,8 @@ import ml.northwestwind.utils.Logger;
 import ml.northwestwind.utils.ModPack;
 import ml.northwestwind.utils.Server;
 import org.apache.commons.io.FileUtils;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -17,9 +19,10 @@ public class Main {
     private static boolean skipMods, skipForge;
 
     public static void main(String[] args) {
+        AnsiConsole.systemInstall();
         File config = new File("./installer.json");
         if (!config.exists() || !config.isFile()) {
-            Logger.log(ANSIColors.RED, "Invalid installer.json file! Exiting...");
+            Logger.log(Ansi.Color.RED.fgBright(), "Invalid installer.json file! Exiting...");
             return;
         }
         readConfig();
@@ -27,22 +30,22 @@ public class Main {
         if (!manifest.exists()) ModPack.downloadModPack();
         Scanner scanner = new Scanner(System.in);
         if (!skipMods) {
-            Logger.log(ANSIColors.MAGENTA, "Would you like to download the mods? [Y/N]");
+            Logger.log(Ansi.Color.MAGENTA.fgBright(), "Would you like to download the mods? [Y/N]");
             String input = scanner.nextLine();
             if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
-                if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(ANSIColors.MAGENTA, "Unknown response. I will take that as a Yes.");
+                if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA.fgBright(), "Unknown response. I will take that as a Yes.");
                 File modsFolder = new File("./mods");
                 if (modsFolder.exists() && modsFolder.list().length > 0) {
-                    Logger.log(ANSIColors.MAGENTA, "There are already items in the mods folder. Would you like to delete them? [Y/N]");
+                    Logger.log(Ansi.Color.MAGENTA.fgBright(), "There are already items in the mods folder. Would you like to delete them? [Y/N]");
                     input = scanner.nextLine();
                     if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
-                        if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(ANSIColors.MAGENTA, "Unknown response. I will take that as a Yes.");
+                        if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA.fgBright(), "Unknown response. I will take that as a Yes.");
                         try {
                             FileUtils.cleanDirectory(modsFolder);
-                            Logger.log(ANSIColors.GREEN, "Cleared content of mods folder");
+                            Logger.log(Ansi.Color.GREEN.fgBright(), "Cleared content of mods folder");
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Logger.log(ANSIColors.RED, "Failed to clean mods folder");
+                            Logger.log(Ansi.Color.RED.fgBright(), "Failed to clean mods folder");
                         }
                     }
                 }
@@ -50,25 +53,26 @@ public class Main {
             }
         }
         if (!skipForge) {
-            Logger.log(ANSIColors.MAGENTA, "Would you like to download and install Forge? [Y/N]");
+            Logger.log(Ansi.Color.MAGENTA.fgBright(), "Would you like to download and install Forge? [Y/N]");
             String input = scanner.nextLine();
             if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
-                if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(ANSIColors.MAGENTA, "Unknown response. I will take that as a Yes.");
+                if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA.fgBright(), "Unknown response. I will take that as a Yes.");
                 ModPack.downloadForge();
             }
         }
-        Logger.log(ANSIColors.CYAN, "Starting server...");
+        Logger.log(Ansi.Color.CYAN.fgBright(), "Starting server...");
         File eula = new File("./eula.txt");
         if (!eula.exists()) {
-            Logger.log(ANSIColors.MAGENTA, "Do you accept Minecraft's EULA (https://account.mojang.com/documents/minecraft_eula)? Type TRUE to accept.");
+            Logger.log(Ansi.Color.MAGENTA.fgBright(), "Do you accept Minecraft's EULA (https://account.mojang.com/documents/minecraft_eula)? Type TRUE to accept.");
             String input = scanner.nextLine();
             if (!input.equalsIgnoreCase("true")) {
-                Logger.log(ANSIColors.RED, "You must accept Minecraft's EULA to proceed. Exiting...");
+                Logger.log(Ansi.Color.RED.fgBright(), "You must accept Minecraft's EULA to proceed. Exiting...");
                 System.exit(0);
             }
             Server.generateEULA();
         }
         Server.launchServer();
+        AnsiConsole.systemUninstall();
     }
 
     private static void readConfig() {
@@ -79,7 +83,7 @@ public class Main {
             skipForge = (boolean) json.getOrDefault("skipForge", false);
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(ANSIColors.RED, "Failed to read installer.json");
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to read installer.json");
         }
     }
 }

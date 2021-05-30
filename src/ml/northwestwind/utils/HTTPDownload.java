@@ -1,5 +1,7 @@
 package ml.northwestwind.utils;
 
+import org.fusesource.jansi.Ansi;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,7 +54,7 @@ public class HTTPDownload {
 
             outputStream.close();
             inputStream.close();
-        } else Logger.log(ANSIColors.RED, "No file to download. Server replied HTTP code: " + responseCode);
+        } else Logger.log(Ansi.Color.RED.fgBright(), "No file to download. Server replied HTTP code: " + responseCode);
         httpConn.disconnect();
         return saveFilePath;
     }

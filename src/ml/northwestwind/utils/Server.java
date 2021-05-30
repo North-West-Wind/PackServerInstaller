@@ -1,6 +1,7 @@
 package ml.northwestwind.utils;
 
 import ml.northwestwind.Main;
+import org.fusesource.jansi.Ansi;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -14,15 +15,15 @@ public class Server {
         try {
             File config = new File("./installer.json");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(config));
-            int minMem = ((int) json.getOrDefault("minMem", 1024));
-            int maxMem = ((int) json.getOrDefault("maxMem", 4096));
+            long minMem = ((long) json.getOrDefault("minMem", 1024));
+            long maxMem = ((long) json.getOrDefault("maxMem", 4096));
             String serverFile = ((String) json.getOrDefault("forgeFile", getServerFile()));
-            Logger.log(ANSIColors.RESET, "Here we go!");
+            Logger.log(Ansi.Color.CYAN.fgBright(), "Here we go!");
             Process server = new ProcessBuilder().inheritIO().command("java", "-jar", "-Xmx" + maxMem + "M", "-Xms" + minMem + "M", serverFile, "nogui").start();
             server.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(ANSIColors.RED, "Failed to launch Forge server! Exiting...");
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to launch Forge server! Exiting...");
             System.exit(1);
         }
     }
@@ -37,7 +38,7 @@ public class Server {
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(ANSIColors.RED, "Failed to create EULA! Exiting...");
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to create EULA! Exiting...");
             System.exit(1);
         }
     }

@@ -2,6 +2,7 @@ package ml.northwestwind.utils;
 
 import ml.northwestwind.Main;
 import org.apache.commons.io.FileUtils;
+import org.fusesource.jansi.Ansi;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -35,7 +36,7 @@ public class ModPack {
             if (f.exists()) {
                 if (f.isFile()) f.delete();
                 else FileUtils.deleteDirectory(f);
-                Logger.log(ANSIColors.CYAN, "Deleted blacklisted file/folder " + folder);
+                Logger.log(Ansi.Color.CYAN.fgBright(), "Deleted blacklisted file/folder " + folder);
             }
         }
     }
@@ -63,24 +64,24 @@ public class ModPack {
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(config));
             String url = (String) json.get("url");
             if (url == null) throw new Exception("Modpack URL is malformed");
-            Logger.log(ANSIColors.GREEN, "Found modpack URL");
+            Logger.log(Ansi.Color.GREEN.fgBright(), "Found modpack URL");
             String pack = HTTPDownload.downloadFile(url, ".");
             if (pack == null) throw new Exception("Failed to download modpack");
-            Logger.log(ANSIColors.GREEN, "Downloaded modpack from URL");
+            Logger.log(Ansi.Color.GREEN.fgBright(), "Downloaded modpack from URL");
             Zip.unzip(pack, ".");
-            Logger.log(ANSIColors.GREEN, "Extracted modpack");
+            Logger.log(Ansi.Color.GREEN.fgBright(), "Extracted modpack");
             new File(pack).delete();
             ModPack.setup();
-            Logger.log(ANSIColors.GREEN, "Finished modpack setup");
+            Logger.log(Ansi.Color.GREEN.fgBright(), "Finished modpack setup");
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(ANSIColors.RED, "Failed to install modpack! Exiting...");
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to install modpack! Exiting...");
             System.exit(1);
         }
     }
 
     public static void downloadMods() {
-        Logger.log(ANSIColors.CYAN, "Starting mod download");
+        Logger.log(Ansi.Color.CYAN.fgBright(), "Starting mod download");
         try {
             File modsFolder = new File("./mods");
             if (!modsFolder.exists() || !modsFolder.isDirectory()) modsFolder.mkdir();
@@ -95,7 +96,7 @@ public class ModPack {
                     JSONObject obj = (JSONObject) o;
                     long project = (long) obj.get("projectID");
                     if (Arrays.stream(blacklisted).anyMatch(o12 -> ((long) o12) == project)) {
-                        Logger.log(ANSIColors.YELLOW, "Skipped project " + project);
+                        Logger.log(Ansi.Color.YELLOW.fgBright(), "Skipped project " + project);
                         skipped++;
                         continue;
                     }
@@ -110,10 +111,10 @@ public class ModPack {
                     suc++;
                 } catch (Exception e) {
                     fai++;
-                    Logger.log(ANSIColors.RED, e.getMessage());
+                    Logger.log(Ansi.Color.RED.fgBright(), e.getMessage());
                 } finally {
                     i++;
-                    Logger.log(ANSIColors.GREEN, String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", i, array.size() - skipped, suc, fai, name));
+                    Logger.log(Ansi.Color.GREEN.fgBright(), String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", i, array.size() - skipped, suc, fai, name));
                 }
             }
             if (suc == array.size() - skipped) {
@@ -127,28 +128,27 @@ public class ModPack {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(ANSIColors.RED, "Failed to download mods! Exiting...");
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to download mods! Exiting...");
             System.exit(1);
         }
     }
 
     public static void downloadForge() {
-        Logger.log(ANSIColors.CYAN, "Starting Forge download");
+        Logger.log(Ansi.Color.CYAN.fgBright(), "Starting Forge download");
         try {
             File manifest = new File("./manifest.json");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(manifest));
             String forge = ((String) ((JSONObject) ((JSONArray) ((JSONObject) json.get("minecraft")).get("modLoaders")).get(0)).get("id")).split("-")[1];
             String mc = (String) ((JSONObject) json.get("minecraft")).get("version");
             String name = String.format("forge-%s-%s-installer.jar", mc, forge);
-            Logger.log(ANSIColors.CYAN, String.format("https://maven.minecraftforge.net/net/minecraftforge/forge/%s-%s/%s", mc, forge, name));
             String file = HTTPDownload.downloadFile(String.format("https://maven.minecraftforge.net/net/minecraftforge/forge/%s-%s/%s", mc, forge, name), ".");
             if (file == null) throw new Exception("Failed to download Forge installer");
-            Logger.log(ANSIColors.GREEN, "Downloaded Forge installer!");
-            Logger.log(ANSIColors.CYAN, "Proceeding to install...");
+            Logger.log(Ansi.Color.GREEN.fgBright(), "Downloaded Forge installer!");
+            Logger.log(Ansi.Color.CYAN.fgBright(), "Proceeding to install...");
             File config = new File("./installer.json");
             json = (JSONObject) Main.parser.parse(new FileReader(config));
             new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "--installServer").start().waitFor();
-            Logger.log(ANSIColors.GREEN, "Installed Forge server!");
+            Logger.log(Ansi.Color.GREEN.fgBright(), "Installed Forge server!");
             json.put("skipForge", true);
             json.put("forgeFile", file.replace("-installer", ""));
             Writer writer = new FileWriter("./installer.json", false);
@@ -157,7 +157,7 @@ public class ModPack {
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(ANSIColors.RED, "Failed to download/install Forge server! Exiting...");
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to download/install Forge server! Exiting...");
             System.exit(1);
         }
     }
