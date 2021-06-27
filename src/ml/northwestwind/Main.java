@@ -1,6 +1,5 @@
 package ml.northwestwind;
 
-import ml.northwestwind.utils.ANSIColors;
 import ml.northwestwind.utils.Logger;
 import ml.northwestwind.utils.ModPack;
 import ml.northwestwind.utils.Server;
@@ -16,7 +15,7 @@ import java.util.Scanner;
 
 public class Main {
     public static final JSONParser parser = new JSONParser();
-    private static boolean skipMods, skipForge;
+    private static boolean skipMods, skipForge, autoDownload;
 
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
@@ -30,14 +29,20 @@ public class Main {
         if (!manifest.exists()) ModPack.downloadModPack();
         Scanner scanner = new Scanner(System.in);
         if (!skipMods) {
-            Logger.log(Ansi.Color.MAGENTA.fgBright(), "Would you like to download the mods? [Y/N]");
-            String input = scanner.nextLine();
+            String input;
+            if (autoDownload) input = "y";
+            else {
+                Logger.log(Ansi.Color.MAGENTA.fgBright(), "Would you like to download the mods? [Y/N]");
+                input = scanner.nextLine();
+            }
             if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
                 if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA.fgBright(), "Unknown response. I will take that as a Yes.");
                 File modsFolder = new File("./mods");
                 if (modsFolder.exists() && modsFolder.list().length > 0) {
-                    Logger.log(Ansi.Color.MAGENTA.fgBright(), "There are already items in the mods folder. Would you like to delete them? [Y/N]");
-                    input = scanner.nextLine();
+                    if (!autoDownload) {
+                        Logger.log(Ansi.Color.MAGENTA.fgBright(), "There are already items in the mods folder. Would you like to delete them? [Y/N]");
+                        input = scanner.nextLine();
+                    }
                     if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
                         if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA.fgBright(), "Unknown response. I will take that as a Yes.");
                         try {
@@ -53,8 +58,12 @@ public class Main {
             }
         }
         if (!skipForge) {
-            Logger.log(Ansi.Color.MAGENTA.fgBright(), "Would you like to download and install Forge? [Y/N]");
-            String input = scanner.nextLine();
+            String input;
+            if (autoDownload) input = "y";
+            else {
+                Logger.log(Ansi.Color.MAGENTA.fgBright(), "Would you like to download and install Forge? [Y/N]");
+                input = scanner.nextLine();
+            }
             if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
                 if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA.fgBright(), "Unknown response. I will take that as a Yes.");
                 ModPack.downloadForge();
@@ -63,8 +72,14 @@ public class Main {
         Logger.log(Ansi.Color.CYAN.fgBright(), "Starting server...");
         File eula = new File("./eula.txt");
         if (!eula.exists()) {
-            Logger.log(Ansi.Color.MAGENTA.fgBright(), "Do you accept Minecraft's EULA (https://account.mojang.com/documents/minecraft_eula)? Type TRUE to accept.");
-            String input = scanner.nextLine();
+            String input;
+            if (autoDownload) {
+                Logger.log(Ansi.Color.MAGENTA.fgBright(), "Auto Download is enabled. We assume you accept Minecraft's EULA");
+                input = "true";
+            } else {
+                Logger.log(Ansi.Color.MAGENTA.fgBright(), "Do you accept Minecraft's EULA (https://account.mojang.com/documents/minecraft_eula)? Type TRUE to accept.");
+                input = scanner.nextLine();
+            }
             if (!input.equalsIgnoreCase("true")) {
                 Logger.log(Ansi.Color.RED.fgBright(), "You must accept Minecraft's EULA to proceed. Exiting...");
                 System.exit(0);
@@ -81,6 +96,7 @@ public class Main {
             JSONObject json = (JSONObject) parser.parse(new FileReader(config));
             skipMods = (boolean) json.getOrDefault("skipMods", false);
             skipForge = (boolean) json.getOrDefault("skipForge", false);
+            autoDownload = (boolean) json.getOrDefault("autoDownload", true);
         } catch (Exception e) {
             e.printStackTrace();
             Logger.log(Ansi.Color.RED.fgBright(), "Failed to read installer.json");
