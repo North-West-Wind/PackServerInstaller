@@ -113,8 +113,7 @@ public class ModPack {
                     fai++;
                     Logger.log(Ansi.Color.RED.fgBright(), e.getMessage());
                 } finally {
-                    i++;
-                    Logger.log(Ansi.Color.GREEN.fgBright(), String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", i, array.size() - skipped, suc, fai, name));
+                    Logger.log(Ansi.Color.GREEN.fgBright(), String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", ++i, array.size() - skipped, suc, fai, name));
                 }
             }
             if (suc == array.size() - skipped) {
