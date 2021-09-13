@@ -27,7 +27,7 @@ public class ModPack {
     }
 
     private static void copyFromOverride() throws IOException, ParseException {
-        File overrides = new File("./overrides");
+        File overrides = new File(Main.overrides);
         FileUtils.copyDirectory(overrides, new File("."));
         FileUtils.deleteDirectory(overrides);
         Object[] blacklist = getBlacklist();

@@ -15,6 +15,7 @@ import java.util.Scanner;
 
 public class Main {
     public static final JSONParser parser = new JSONParser();
+    public static String overrides = "overrides";
     private static boolean skipMods, skipForge, autoDownload;
 
     public static void main(String[] args) {
@@ -27,6 +28,7 @@ public class Main {
         readConfig();
         File manifest = new File("./manifest.json");
         if (!manifest.exists()) ModPack.downloadModPack();
+        readManifest();
         Scanner scanner = new Scanner(System.in);
         if (!skipMods) {
             String input;
@@ -100,6 +102,17 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
             Logger.log(Ansi.Color.RED.fgBright(), "Failed to read installer.json");
+        }
+    }
+
+    private static void readManifest() {
+        try {
+            File manifest = new File("./manifest.json");
+            JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
+            overrides = (String) json.getOrDefault("overrides", "overrides");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.log(Ansi.Color.RED.fgBright(), "Failed to read manifest.json");
         }
     }
 }
