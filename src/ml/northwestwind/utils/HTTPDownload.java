@@ -54,7 +54,7 @@ public class HTTPDownload {
 
             outputStream.close();
             inputStream.close();
-        } else Logger.log(Ansi.Color.RED.fgBright(), "No file to download. Server replied HTTP code: " + responseCode);
+        } else Logger.log(Ansi.Color.RED, "No file to download. Server replied HTTP code: " + responseCode);
         httpConn.disconnect();
         return saveFilePath;
     }

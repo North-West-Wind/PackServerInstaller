@@ -9,10 +9,6 @@ public class Logger {
         System.out.println(ansi().fg(color).a(addDate()).a(info.toString()).reset());
     }
 
-    public static void log(int color, Object info) {
-        System.out.println(ansi().fg(color).a(addDate()).a(info.toString()).reset());
-    }
-
     private static String addDate() {
         return new SimpleDateFormat("[HH:mm:ss]").format(new Date(System.currentTimeMillis())) + " ";
     }

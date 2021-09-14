@@ -16,12 +16,12 @@ public class Server {
             File config = new File("./installer.json");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(config));
             String serverFile = ((String) json.getOrDefault("forgeFile", getServerFile()));
-            Logger.log(Ansi.Color.CYAN.fgBright(), "Here we go!");
+            Logger.log(Ansi.Color.CYAN, "Here we go!");
             Process server = new ProcessBuilder().inheritIO().command("java", "-jar", serverFile, "nogui").start();
             server.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(Ansi.Color.RED.fgBright(), "Failed to launch Forge server! Exiting...");
+            Logger.log(Ansi.Color.RED, "Failed to launch Forge server! Exiting...");
             System.exit(1);
         }
     }
@@ -36,7 +36,7 @@ public class Server {
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(Ansi.Color.RED.fgBright(), "Failed to create EULA! Exiting...");
+            Logger.log(Ansi.Color.RED, "Failed to create EULA! Exiting...");
             System.exit(1);
         }
     }
