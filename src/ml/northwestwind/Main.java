@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class Main {
     public static final JSONParser parser = new JSONParser();
     public static String overrides = "overrides";
-    public static boolean skipMods, skipForge, autoDownload;
+    public static boolean skipMods, skipServer, autoDownload;
     public static Scanner scanner;
 
     public static void main(String[] args) {
@@ -81,16 +81,16 @@ public class Main {
                 ModPack.downloadMods();
             }
         }
-        if (!skipForge) {
+        if (!skipServer) {
             String input;
             if (autoDownload) input = "y";
             else {
-                Logger.log(Ansi.Color.MAGENTA, "Would you like to download and install Forge? [Y/N]");
+                Logger.log(Ansi.Color.MAGENTA, "Would you like to download and install mod server? [Y/N]");
                 input = scanner.nextLine();
             }
             if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
                 if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA, "Unknown response. I will take that as a Yes.");
-                ModPack.downloadForge();
+                ModPack.downloadServer();
             }
         }
         Logger.log(Ansi.Color.CYAN, "Starting server...");
@@ -119,7 +119,7 @@ public class Main {
             File config = new File("./installer.json");
             JSONObject json = (JSONObject) parser.parse(new FileReader(config));
             skipMods = (boolean) json.getOrDefault("skipMods", false);
-            skipForge = (boolean) json.getOrDefault("skipForge", false);
+            skipServer = (boolean) json.getOrDefault("skipServer", false);
             autoDownload = (boolean) json.getOrDefault("autoDownload", true);
         } catch (Exception e) {
             e.printStackTrace();

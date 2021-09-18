@@ -155,31 +155,46 @@ public class ModPack {
         }
     }
 
-    public static void downloadForge() {
-        Logger.log(Ansi.Color.CYAN, "Starting Forge download");
+    public static void downloadServer() {
+        Logger.log(Ansi.Color.CYAN, "Starting mod server download");
         try {
             File manifest = new File("./manifest.json");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(manifest));
-            String forge = ((String) ((JSONObject) ((JSONArray) ((JSONObject) json.get("minecraft")).get("modLoaders")).get(0)).get("id")).split("-")[1];
-            String mc = (String) ((JSONObject) json.get("minecraft")).get("version");
-            String name = String.format("forge-%s-%s-installer.jar", mc, forge);
-            String file = HTTPDownload.downloadFile(String.format("https://maven.minecraftforge.net/net/minecraftforge/forge/%s-%s/%s", mc, forge, name), ".");
-            if (file == null) throw new Exception("Failed to download Forge installer");
-            Logger.log(Ansi.Color.GREEN, "Downloaded Forge installer!");
-            Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
+            JSONObject minecraftJson = (JSONObject) json.get("minecraft");
+            String[] id = ((String) ((JSONObject) ((JSONArray) minecraftJson.get("modLoaders")).get(0)).get("id")).split("-");
+            String launcher = id[0];
+            String version = id[1];
             File config = new File("./installer.json");
             json = (JSONObject) Main.parser.parse(new FileReader(config));
-            new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "--installServer").start().waitFor();
-            Logger.log(Ansi.Color.GREEN, "Installed Forge server!");
-            json.put("skipForge", true);
-            json.put("forgeFile", file.replace("-installer", ""));
+            String file;
+            if (launcher.equalsIgnoreCase("forge")) {
+                String mc = (String) ((JSONObject) json.get("minecraft")).get("version");
+                String name = String.format("forge-%s-%s-installer.jar", mc, version);
+                file = HTTPDownload.downloadFile(String.format("https://maven.minecraftforge.net/net/minecraftforge/forge/%s-%s/%s", mc, version, name), ".");
+                if (file == null) throw new Exception("Failed to download Forge installer");
+                Logger.log(Ansi.Color.GREEN, "Downloaded Forge installer!");
+                Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
+                new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "--installServer").start().waitFor();
+                Logger.log(Ansi.Color.GREEN, "Installed Forge server!");
+            } else if (launcher.equalsIgnoreCase("fabric")) {
+                file = HTTPDownload.downloadFile("https://maven.fabricmc.net/net/fabricmc/fabric-installer/0.7.4/fabric-installer-0.7.4.jar", ".");
+                if (file == null) throw new Exception("Failed to download Fabric installer");
+                Logger.log(Ansi.Color.GREEN, "Downloaded Fabric installer!");
+                Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
+                new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "server", "-loader", version, "-mcversion", (String) minecraftJson.get("version")).start().waitFor();
+                Logger.log(Ansi.Color.GREEN, "Installed Fabric server!");
+            } else {
+                throw new IllegalArgumentException("Unknown launcher!");
+            }
+            json.put("skipServer", true);
+            json.put("serverJar", file);
             Writer writer = new FileWriter("./installer.json", false);
             JSONObject.writeJSONString(json, writer);
             writer.flush();
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(Ansi.Color.RED, "Failed to download/install Forge server! Exiting...");
+            Logger.log(Ansi.Color.RED, "Failed to download/install mod server! Exiting...");
             System.exit(1);
         }
     }

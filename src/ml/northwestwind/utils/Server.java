@@ -15,13 +15,13 @@ public class Server {
         try {
             File config = new File("./installer.json");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(config));
-            String serverFile = ((String) json.getOrDefault("forgeFile", getServerFile()));
+            String serverFile = ((String) json.getOrDefault("serverJar", getServerFile()));
             Logger.log(Ansi.Color.CYAN, "Here we go!");
             Process server = new ProcessBuilder().inheritIO().command("java", "-jar", serverFile, "nogui").start();
             server.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.log(Ansi.Color.RED, "Failed to launch Forge server! Exiting...");
+            Logger.log(Ansi.Color.RED, "Failed to launch server! Exiting...");
             System.exit(1);
         }
     }
@@ -29,8 +29,6 @@ public class Server {
     public static void generateEULA() {
         try {
             Writer writer = new FileWriter("./eula.txt", false);
-            writer.write("#By changing the setting below to TRUE you are indicating your agreement to our EULA (https://account.mojang.com/documents/minecraft_eula).\n");
-            writer.write("#" + getDate() + "\n");
             writer.write("eula=true");
             writer.flush();
             writer.close();
@@ -41,16 +39,15 @@ public class Server {
         }
     }
 
-    private static String getDate() {
-        return new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").format(new Date(System.currentTimeMillis()));
-    }
-
     private static String getServerFile() throws IOException, ParseException {
         File manifest = new File("./manifest.json");
         JSONObject json = (JSONObject) Main.parser.parse(new FileReader(manifest));
-        String forge = ((String) ((JSONObject) ((JSONArray) ((JSONObject) json.get("minecraft")).get("modLoaders")).get(0)).get("id")).split("-")[1];
-        String mc = (String) ((JSONObject) json.get("minecraft")).get("version");
-        String name = String.format("forge-%s-%s.jar", mc, forge);
-        return name;
+        JSONObject minecraftJson = (JSONObject) json.get("minecraft");
+        String[] id = ((String) ((JSONObject) ((JSONArray) minecraftJson.get("modLoaders")).get(0)).get("id")).split("-");
+        String launcher = id[0];
+        if (launcher.equalsIgnoreCase("fabric")) return "./fabric-server-launch.jar";
+        String version = id[1];
+        String mc = (String) minecraftJson.get("version");
+        return String.format("forge-%s-%s.jar", mc, version);
     }
 }
