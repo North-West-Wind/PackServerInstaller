@@ -176,6 +176,7 @@ public class ModPack {
                 Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
                 new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "--installServer").start().waitFor();
                 Logger.log(Ansi.Color.GREEN, "Installed Forge server!");
+                file = String.format("forge-%s-%s.jar", mc, version);
             } else if (launcher.equalsIgnoreCase("fabric")) {
                 file = HTTPDownload.downloadFile("https://maven.fabricmc.net/net/fabricmc/fabric-installer/0.7.4/fabric-installer-0.7.4.jar", ".");
                 if (file == null) throw new Exception("Failed to download Fabric installer");
@@ -183,6 +184,7 @@ public class ModPack {
                 Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
                 new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "server", "-loader", version, "-mcversion", (String) minecraftJson.get("version")).start().waitFor();
                 Logger.log(Ansi.Color.GREEN, "Installed Fabric server!");
+                file = "fabric-server-launch.jar";
             } else {
                 throw new IllegalArgumentException("Unknown launcher!");
             }
