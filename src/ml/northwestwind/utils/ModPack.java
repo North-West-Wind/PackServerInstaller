@@ -168,7 +168,7 @@ public class ModPack {
             json = (JSONObject) Main.parser.parse(new FileReader(config));
             String file;
             if (launcher.equalsIgnoreCase("forge")) {
-                String mc = (String) ((JSONObject) json.get("minecraft")).get("version");
+                String mc = (String) minecraftJson.get("version");
                 String name = String.format("forge-%s-%s-installer.jar", mc, version);
                 file = HTTPDownload.downloadFile(String.format("https://maven.minecraftforge.net/net/minecraftforge/forge/%s-%s/%s", mc, version, name), ".");
                 if (file == null) throw new Exception("Failed to download Forge installer");
