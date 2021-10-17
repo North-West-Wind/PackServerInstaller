@@ -14,12 +14,14 @@ import java.io.FileReader;
 import java.util.Scanner;
 
 public class Main {
+    public static final String VERSION = "1.0.1";
     public static final JSONParser parser = new JSONParser();
     public static String overrides = "overrides";
     public static boolean skipMods, skipServer, autoDownload;
     public static Scanner scanner;
 
     public static void main(String[] args) {
+        Logger.log("Pack-Server-Installer v" + VERSION + " - Made by NorthWestWind");
         AnsiConsole.systemInstall();
         File config = new File("./installer.json");
         if (!config.exists() || !config.isFile()) {
@@ -29,7 +31,7 @@ public class Main {
         readConfig();
         scanner = new Scanner(System.in);
         File manifest = new File("./manifest.json");
-        if (manifest.exists()) {
+        if (!manifest.exists()) {
             String input;
             if (autoDownload) input = "y";
             else {
