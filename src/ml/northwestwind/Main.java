@@ -17,7 +17,7 @@ public class Main {
     public static final String VERSION = "1.0.1";
     public static final JSONParser parser = new JSONParser();
     public static String overrides = "overrides";
-    public static boolean skipMods, skipServer, autoDownload;
+    public static boolean skipMods, skipServer, autoDownload, local;
     public static Scanner scanner;
 
     public static void main(String[] args) {
@@ -31,7 +31,7 @@ public class Main {
         readConfig();
         scanner = new Scanner(System.in);
         File manifest = new File("./manifest.json");
-        if (!manifest.exists()) {
+        if (manifest.exists()) {
             String input;
             if (autoDownload) input = "y";
             else {
@@ -46,7 +46,7 @@ public class Main {
                 manifest.delete();
                 ModPack.downloadModPack();
             }
-        }
+        } else ModPack.downloadModPack();
         readManifest();
         if (!skipMods) {
             String input;
@@ -91,21 +91,16 @@ public class Main {
                 input = scanner.nextLine();
             }
             if (input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
-                if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) Logger.log(Ansi.Color.MAGENTA, "Unknown response. I will take that as a Yes.");
+                if (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n"))
+                    Logger.log(Ansi.Color.MAGENTA, "Unknown response. I will take that as a Yes.");
                 ModPack.downloadServer();
             }
         }
         Logger.log(Ansi.Color.CYAN, "Starting server...");
         File eula = new File("./eula.txt");
         if (!eula.exists()) {
-            String input;
-            if (autoDownload) {
-                Logger.log(Ansi.Color.MAGENTA, "Auto Download is enabled. We assume you accept Minecraft's EULA");
-                input = "true";
-            } else {
-                Logger.log(Ansi.Color.MAGENTA, "Do you accept Minecraft's EULA (https://account.mojang.com/documents/minecraft_eula)? Type TRUE to accept.");
-                input = scanner.nextLine();
-            }
+            Logger.log(Ansi.Color.MAGENTA, "Do you accept Minecraft's EULA (https://account.mojang.com/documents/minecraft_eula)? Type TRUE to accept.");
+            String input = scanner.nextLine();
             if (!input.equalsIgnoreCase("true")) {
                 Logger.log(Ansi.Color.RED, "You must accept Minecraft's EULA to proceed. Exiting...");
                 System.exit(0);
@@ -123,6 +118,7 @@ public class Main {
             skipMods = (boolean) json.getOrDefault("skipMods", false);
             skipServer = (boolean) json.getOrDefault("skipServer", false);
             autoDownload = (boolean) json.getOrDefault("autoDownload", true);
+            local = (boolean) json.getOrDefault("local", false);
         } catch (Exception e) {
             e.printStackTrace();
             Logger.log(Ansi.Color.RED, "Failed to read installer.json");

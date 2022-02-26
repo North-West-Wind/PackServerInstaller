@@ -5,13 +5,12 @@ import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
+import java.rmi.NoSuchObjectException;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class ModPack {
     private static final String BASE_URL = "https://addons-ecs.forgesvc.net/api/v2/addon/";
@@ -53,27 +52,27 @@ public class ModPack {
         }
         FileUtils.copyDirectory(overrides, new File("."));
         FileUtils.deleteDirectory(overrides);
-        Object[] blacklist = getBlacklist();
+        Object[] blacklist = getBlocklist();
         for (Object folder : blacklist) {
             File f = new File(folder.toString());
             if (f.exists()) {
                 if (f.isFile()) f.delete();
                 else FileUtils.deleteDirectory(f);
-                Logger.log(Ansi.Color.CYAN, "Deleted blacklisted file/folder " + folder);
+                Logger.log(Ansi.Color.CYAN, "Deleted blocked file/folder " + folder);
             }
         }
     }
 
-    private static Object[] getBlacklist() throws IOException, ParseException {
-        File blacklist = new File("./blacklist.json");
+    private static Object[] getBlocklist() throws IOException, ParseException {
+        File blacklist = new File("./blocklist.json");
         if (!blacklist.exists() || !blacklist.isFile()) return new String[0];
         JSONObject json = (JSONObject) Main.parser.parse(new FileReader(blacklist));
         JSONArray array = (JSONArray) json.get("folders");
         return array.toArray();
     }
 
-    private static Object[] getBlacklistMods() throws IOException, ParseException {
-        File blacklist = new File("./blacklist.json");
+    private static Object[] getBlocklistMods() throws IOException, ParseException {
+        File blacklist = new File("./blocklist.json");
         if (!blacklist.exists() || !blacklist.isFile()) return new String[0];
         JSONObject json = (JSONObject) Main.parser.parse(new FileReader(blacklist));
         JSONArray array = (JSONArray) json.get("mods");
@@ -83,13 +82,20 @@ public class ModPack {
     public static void downloadModPack() {
         try {
             File config = new File("./installer.json");
-            if (!config.exists() || !config.isFile()) throw new Exception("Invalid installer.json file! Exiting...");
+            if (!config.exists() || !config.isFile()) throw new FileNotFoundException("Invalid installer.json file! Exiting...");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(config));
             String url = (String) json.get("url");
-            if (url == null) throw new Exception("Modpack URL is malformed");
+            if (url == null) throw new NoSuchObjectException("Modpack URL is malformed");
             Logger.log(Ansi.Color.GREEN, "Found modpack URL");
-            String pack = HTTPDownload.downloadFile(url, ".");
-            if (pack == null) throw new Exception("Failed to download modpack");
+            String pack;
+            if (Main.local) {
+                File packFile = new File(url);
+                if (!packFile.exists() || !packFile.isFile()) throw new FileNotFoundException("The path does not lead to a valid modpack export");
+                pack = url;
+            } else {
+                pack = HTTPDownload.downloadFile(url, ".");
+                if (pack == null) throw new SyncFailedException("Failed to download modpack");
+            }
             Logger.log(Ansi.Color.GREEN, "Downloaded modpack from URL");
             Zip.unzip(pack, ".");
             Logger.log(Ansi.Color.GREEN, "Extracted modpack");
@@ -111,7 +117,7 @@ public class ModPack {
             File manifest = new File("./manifest.json");
             JSONObject json = (JSONObject) Main.parser.parse(new FileReader(manifest));
             JSONArray array = (JSONArray) json.get("files");
-            Object[] blacklisted = getBlacklistMods();
+            Object[] blacklisted = getBlocklistMods();
             int i = 0, suc = 0, fai = 0, skipped = 0;
             for (Object o : array) {
                 String name = "";
@@ -126,11 +132,11 @@ public class ModPack {
                     long file = (long) obj.get("fileID");
                     JSONArray files = (JSONArray) JSON.readJsonFromUrl(BASE_URL + project + "/files");
                     Optional f = files.stream().filter(o1 -> ((JSONObject) o1).get("id").equals(file)).findFirst();
-                    if (!f.isPresent()) throw new Exception("Cannot find required file");
+                    if (!f.isPresent()) throw new FileNotFoundException("Cannot find required file");
                     JSONObject j = (JSONObject) f.get();
                     name = (String) j.get("displayName");
                     String downloaded = HTTPDownload.downloadFile((String) j.get("downloadUrl"), "./mods");
-                    if (downloaded == null) throw new Exception("Failed to download mod " + name);
+                    if (downloaded == null) throw new SyncFailedException("Failed to download mod " + name);
                     suc++;
                 } catch (Exception e) {
                     fai++;
@@ -171,7 +177,7 @@ public class ModPack {
                 String mc = (String) minecraftJson.get("version");
                 String name = String.format("forge-%s-%s-installer.jar", mc, version);
                 file = HTTPDownload.downloadFile(String.format("https://maven.minecraftforge.net/net/minecraftforge/forge/%s-%s/%s", mc, version, name), ".");
-                if (file == null) throw new Exception("Failed to download Forge installer");
+                if (file == null) throw new SyncFailedException("Failed to download Forge installer");
                 Logger.log(Ansi.Color.GREEN, "Downloaded Forge installer!");
                 Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
                 new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "--installServer").start().waitFor();
@@ -179,7 +185,7 @@ public class ModPack {
                 file = String.format("forge-%s-%s.jar", mc, version);
             } else if (launcher.equalsIgnoreCase("fabric")) {
                 file = HTTPDownload.downloadFile("https://maven.fabricmc.net/net/fabricmc/fabric-installer/0.7.4/fabric-installer-0.7.4.jar", ".");
-                if (file == null) throw new Exception("Failed to download Fabric installer");
+                if (file == null) throw new SyncFailedException("Failed to download Fabric installer");
                 Logger.log(Ansi.Color.GREEN, "Downloaded Fabric installer!");
                 Logger.log(Ansi.Color.CYAN, "Proceeding to install...");
                 new ProcessBuilder().inheritIO().command("java", "-jar", new File(file).getName(), "server", "-loader", version, "-mcversion", (String) minecraftJson.get("version")).start().waitFor();

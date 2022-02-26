@@ -2,7 +2,9 @@ package ml.northwestwind.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import static org.fusesource.jansi.Ansi.*;
+
+import static org.fusesource.jansi.Ansi.Color;
+import static org.fusesource.jansi.Ansi.ansi;
 
 public class Logger {
     public static void log(Color color, Object info) {
