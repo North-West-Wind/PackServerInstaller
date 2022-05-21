@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class ModPack {
-    private static final String BASE_URL = "https://addons-ecs.forgesvc.net/api/v2/addon/";
+    private static final String BASE_URL = "https://northwestwind.ml/api/curseforge/mods/";
 
     public static void setup() throws IOException, ParseException {
         deleteUnnecessary();

@@ -14,7 +14,7 @@ import java.io.FileReader;
 import java.util.Scanner;
 
 public class Main {
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.0.2";
     public static final JSONParser parser = new JSONParser();
     public static String overrides = "overrides";
     public static boolean skipMods, skipServer, autoDownload, local;
